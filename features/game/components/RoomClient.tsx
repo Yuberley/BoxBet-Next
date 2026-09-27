@@ -95,7 +95,7 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
       <Card className="mx-auto my-16 max-w-md space-y-4 text-center">
         <h1 className="font-display text-2xl font-bold">La sala se cerró</h1>
         <p className="text-muted">El anfitrión canceló la partida.</p>
-        <Link href="/" className="font-semibold text-primary underline">Volver al inicio</Link>
+        <Link href="/" className="font-semibold text-accent underline">Volver al inicio</Link>
       </Card>
     );
   }

@@ -39,6 +39,14 @@ export interface Turn {
   /** Momento (epoch ms) en que vence la fase actual. El servidor lo usa para resolver timeouts. */
   deadline: number;
   number: number;
+  /** Líneas trazadas en ESTE turno, en orden. */
+  placed: EdgeKey[];
+}
+
+/** Resumen del turno anterior: permite a la UI resaltar "lo que acaba de pasar". */
+export interface TurnSummary {
+  playerId: PlayerId;
+  edges: EdgeKey[];
 }
 
 export type LogEntry =
@@ -67,6 +75,7 @@ export interface GameState {
   /** Mapa arista → dueño. Un Record es O(1) para consultar y serializa a JSON directo. */
   edges: Partial<Record<EdgeKey, PlayerId>>;
   turn: Turn | null;
+  lastTurn: TurnSummary | null;
   log: LogEntry[];
   result: GameResult | null;
   createdAt: number;

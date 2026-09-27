@@ -23,7 +23,7 @@ export function LobbyForm({ defaultNickname, defaultCode }: { defaultNickname: s
   return (
     <form className="mx-auto w-full max-w-6xl space-y-8 px-4">
       <div className="mx-auto max-w-sm">
-        <label className="flex items-center gap-3 rounded-full border border-line bg-surface px-5 focus-within:border-primary">
+        <label className="flex items-center gap-3 rounded-full border border-line bg-surface px-5 focus-within:border-accent">
           <UserRound className="size-5 text-muted" aria-hidden />
           <span className="sr-only">Tu apodo</span>
           <input
@@ -49,7 +49,7 @@ export function LobbyForm({ defaultNickname, defaultCode }: { defaultNickname: s
           <Plus className="pointer-events-none absolute -top-4 -right-4 size-36 text-white/[0.03]" aria-hidden />
           <header>
             <h2 className="flex items-center gap-3 font-display text-3xl font-bold">
-              <Box className="size-7 text-primary" aria-hidden /> Crear sala
+              <Box className="size-7 text-accent" aria-hidden /> Crear sala
             </h2>
             <p className="mt-3 text-muted">Configura el valor de la apuesta para iniciar una nueva partida.</p>
           </header>
@@ -63,7 +63,7 @@ export function LobbyForm({ defaultNickname, defaultCode }: { defaultNickname: s
           <KeyRound className="pointer-events-none absolute -top-4 -right-4 size-36 text-white/[0.03]" aria-hidden />
           <header>
             <h2 className="flex items-center gap-3 font-display text-3xl font-bold">
-              <KeyRound className="size-7 text-primary" aria-hidden /> Unirse a sala
+              <KeyRound className="size-7 text-accent" aria-hidden /> Unirse a sala
             </h2>
             <p className="mt-3 text-muted">Ingresa el código de 4 dígitos que te compartió quien creó la sala.</p>
           </header>

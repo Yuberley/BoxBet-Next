@@ -11,7 +11,7 @@ export function TextField({ label, className, ...props }: ComponentProps<"input"
       </label>
       <input
         id={id}
-        className="h-12 w-full rounded-2xl border border-line bg-canvas-deep/60 px-4 text-white placeholder:text-slate-500 focus:border-primary focus:outline-none"
+        className="h-12 w-full rounded-2xl border border-line bg-canvas-deep/60 px-4 text-white placeholder:text-slate-500 focus:border-accent focus:outline-none"
         {...props}
       />
     </div>

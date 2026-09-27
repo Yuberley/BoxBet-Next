@@ -12,7 +12,7 @@ export default async function HomePage() {
     <div className="flex flex-1 flex-col gap-12 py-12 sm:py-16">
       <header className="mx-auto max-w-4xl space-y-5 px-4 text-center">
         <span className="mx-auto grid size-16 place-items-center rounded-full bg-surface shadow-lg shadow-primary/10">
-          <Gamepad2 className="size-8 text-primary" aria-hidden />
+          <Gamepad2 className="size-8 text-accent" aria-hidden />
         </span>
         <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance sm:text-7xl">
           Bienvenido a la Arena

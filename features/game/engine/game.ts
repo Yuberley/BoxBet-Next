@@ -42,6 +42,7 @@ export function createGame(input: {
     players: [input.host],
     edges: {},
     turn: null,
+    lastTurn: null,
     log: [{ kind: "joined", playerId: input.host.id, at: input.now }],
     result: null,
     createdAt: input.now,
@@ -175,6 +176,10 @@ function guardTurn(state: GameState, playerId: PlayerId) {
 }
 
 function startTurn(next: GameState, playerIndex: number, at: number, number: number) {
+  // Guardamos lo que hizo el jugador saliente antes de empezar el turno nuevo.
+  if (next.turn) {
+    next.lastTurn = { playerId: next.players[next.turn.playerIndex].id, edges: next.turn.placed ?? [] };
+  }
   next.turn = {
     playerIndex,
     phase: "roll",
@@ -182,6 +187,7 @@ function startTurn(next: GameState, playerIndex: number, at: number, number: num
     movesLeft: 0,
     deadline: at + ROLL_SECONDS * 1000,
     number,
+    placed: [],
   };
 }
 
@@ -196,7 +202,9 @@ function applyRoll(next: GameState, value: number, at: number, auto: boolean) {
 }
 
 function applyEdge(next: GameState, playerId: PlayerId, edge: EdgeRef, at: number) {
-  next.edges[toEdgeKey(edge)] = playerId;
+  const key = toEdgeKey(edge);
+  next.edges[key] = playerId;
+  next.turn!.placed = [...(next.turn!.placed ?? []), key];
 
   // Solo las celdas vecinas pueden haberse cerrado con esta línea.
   for (const { row, col } of adjacentCells(edge, next.gridSize)) {
@@ -222,6 +230,9 @@ function applyEdge(next: GameState, playerId: PlayerId, edge: EdgeRef, at: numbe
 }
 
 function finish(next: GameState, result: NonNullable<GameState["result"]>, at: number) {
+  if (next.turn) {
+    next.lastTurn = { playerId: next.players[next.turn.playerIndex].id, edges: next.turn.placed ?? [] };
+  }
   next.status = "finished";
   next.result = result;
   next.finishedAt = at;

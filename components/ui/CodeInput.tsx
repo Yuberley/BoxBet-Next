@@ -51,7 +51,7 @@ export function CodeInput({ name, length = 4, defaultValue = "" }: { name: strin
           maxLength={1}
           aria-label={`Dígito ${index + 1} de ${length}`}
           placeholder="–"
-          className="h-18 w-14 rounded-full border-2 border-line bg-surface text-center font-display text-3xl font-bold text-white placeholder:text-slate-600 focus:border-primary focus:outline-none sm:w-16"
+          className="h-18 w-14 rounded-full border-2 border-line bg-surface text-center font-display text-3xl font-bold text-white placeholder:text-slate-500 focus:border-accent focus:outline-none sm:w-16"
         />
       ))}
     </div>

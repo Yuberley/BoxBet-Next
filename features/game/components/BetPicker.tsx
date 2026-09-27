@@ -25,7 +25,7 @@ export function BetPicker({ defaultValue = 1000 }: { defaultValue?: number }) {
             </span>
           </p>
           <p className="text-right">
-            <span className="block font-display text-4xl font-extrabold text-primary tabular-nums">
+            <span className="block font-display text-4xl font-extrabold text-accent tabular-nums">
               {formatMoney(bet, false)}
             </span>
             <span className="text-xs font-semibold text-muted">{CURRENCY.plural.toUpperCase()}</span>
@@ -37,7 +37,7 @@ export function BetPicker({ defaultValue = 1000 }: { defaultValue?: number }) {
               key={option}
               className={cn(
                 "cursor-pointer rounded-full py-2 text-center text-sm font-bold transition",
-                "has-focus-visible:outline-2 has-focus-visible:outline-primary",
+                "has-focus-visible:outline-2 has-focus-visible:outline-accent",
                 bet === option ? "bg-primary text-white shadow-lg shadow-primary/30" : "bg-slate-700/60 hover:bg-slate-600",
               )}
             >

@@ -115,7 +115,7 @@ export function Board({ state, seatOf, activeSeat, interactive, onPlaceEdge }: B
             className={cn(
               "block rounded-full transition-all duration-200",
               evenRow ? "h-1.5 w-full" : "h-full w-1.5",
-              ownerSeat ? EDGE_COLOR[ownerSeat] : "bg-slate-600/60",
+              ownerSeat ? EDGE_COLOR[ownerSeat] : "bg-edge-free/70",
               canClick && activeSeat && HOVER_COLOR[activeSeat],
             )}
           />

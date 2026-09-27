@@ -33,7 +33,7 @@ export function WaitingRoom({ code, state, onLeave, leaving }: WaitingRoomProps)
       <Card className="relative overflow-hidden p-0 sm:p-0">
         <div className="h-1.5 bg-linear-to-r from-primary to-p1" />
         <div className="space-y-8 p-6 text-center sm:p-10">
-          <span className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-primary">
+          <span className="inline-flex items-center gap-2 rounded-full bg-primary/15 px-3 py-1 text-sm font-semibold text-accent">
             <span className="size-2 animate-pulse rounded-full bg-primary" /> EN VIVO
           </span>
           <div>
@@ -64,8 +64,8 @@ export function WaitingRoom({ code, state, onLeave, leaving }: WaitingRoomProps)
             </figure>
             <span className="font-display text-4xl font-black text-white/15 italic">VS</span>
             <figure className="space-y-2">
-              <div className="mx-auto grid size-24 place-items-center rounded-full border-2 border-dashed border-primary/50 bg-primary/5">
-                <UserPlus className="size-9 text-primary/70" aria-hidden />
+              <div className="mx-auto grid size-24 place-items-center rounded-full border-2 border-dashed border-accent/50 bg-primary/5">
+                <UserPlus className="size-9 text-accent/70" aria-hidden />
               </div>
               <figcaption className="text-muted italic">Esperando…</figcaption>
             </figure>
@@ -90,7 +90,7 @@ export function WaitingRoom({ code, state, onLeave, leaving }: WaitingRoomProps)
         {now === null ? "--:--" : formatDuration(now - state.createdAt)}
       </p>
       <p className="text-center text-sm text-muted">
-        💡 <strong className="text-primary">Tip:</strong> evita trazar la tercera línea de una caja: le regalas la moneda a tu rival.
+        💡 <strong className="text-accent">Tip:</strong> evita trazar la tercera línea de una caja: le regalas la moneda a tu rival.
       </p>
     </div>
   );

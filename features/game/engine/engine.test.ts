@@ -17,6 +17,7 @@ import {
   resolveTimeouts,
   rollDice,
   seededRandom,
+  toEdgeKey,
   type GameResultOf,
   type GameState,
 } from ".";
@@ -76,6 +77,15 @@ describe("turnos", () => {
     const edges = allEdges(state.gridSize).slice(0, moves);
     for (const edge of edges) state = unwrap(placeEdge(state, "alice", edge, 0));
     expect(state.turn).toMatchObject({ playerIndex: 1, phase: "roll", number: 2 });
+  });
+
+  it("recuerda las líneas del turno anterior (para resaltarlas en la UI)", () => {
+    const { state: start, random } = startedGame();
+    let state = unwrap(rollDice(start, "alice", 0, random));
+    const edges = allEdges(state.gridSize).slice(0, state.turn!.dice!);
+    for (const edge of edges) state = unwrap(placeEdge(state, "alice", edge, 0));
+    expect(state.lastTurn).toEqual({ playerId: "alice", edges: edges.map(toEdgeKey) });
+    expect(state.turn!.placed).toEqual([]);
   });
 
   it("no permite repetir una línea", () => {

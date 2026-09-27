@@ -21,7 +21,7 @@ export default function RulesPage() {
     <div className="mx-auto w-full max-w-3xl space-y-6 px-4 py-12">
       <h1 className="font-display text-5xl font-extrabold">Reglas</h1>
       <Card>
-        <ol className="list-decimal space-y-3 pl-5 text-slate-300 marker:font-bold marker:text-primary">
+        <ol className="list-decimal space-y-3 pl-5 text-slate-300 marker:font-bold marker:text-accent">
           {steps.map((step) => (
             <li key={step}>{step}</li>
           ))}
@@ -56,7 +56,7 @@ export default function RulesPage() {
           Los {CURRENCY.plural} ({CURRENCY.symbol}) son una moneda ficticia: no tienen valor real.
         </p>
       </Card>
-      <Link href="/" className="inline-block font-semibold text-primary underline">
+      <Link href="/" className="inline-block font-semibold text-accent underline">
         Ir a jugar
       </Link>
     </div>

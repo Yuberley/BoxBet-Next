@@ -12,8 +12,13 @@
   --color-surface-2: #273449;
   --color-line: #334155;
   --color-muted: #94a3b8;
-  --color-primary: #3b82f6;
-  --color-primary-hover: #2563eb;
+  /* primary = FONDOS (botones). accent = TEXTO, iconos y foco. Separarlos permite cumplir
+     contraste WCAG AA en ambos usos: blanco sobre primary 5.2:1, accent sobre surface 5.8:1. */
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-accent: #60a5fa;
+  /* Líneas libres del tablero: 4.2:1 sobre surface (WCAG 1.4.11 pide ≥ 3:1 en componentes). */
+  --color-edge-free: #7c8aa0;
   /* Cada jugador tiene su color de identidad en el tablero */
   --color-p1: #38bdf8;
   --color-p2: #fb923c;
@@ -60,7 +65,7 @@ body {
 
 /* Foco visible y consistente para navegación con teclado (accesibilidad) */
 :focus-visible {
-  @apply outline-2 outline-offset-2 outline-primary;
+  @apply outline-2 outline-offset-2 outline-accent;
 }
 
 /* Respeta a quien pide menos movimiento en su sistema operativo */
@@ -78,11 +83,11 @@ body {
     width: var(--coin-size, 3.5rem);
     height: var(--coin-size, 3.5rem);
     font-size: calc(var(--coin-size, 3.5rem) * 0.26);
-    color: rgb(0 0 0 / 0.65);
+    color: rgb(2 6 23 / 0.9); /* casi negro: legible sobre bronce, plata y oro */
     box-shadow: inset 0 -4px 0 rgb(0 0 0 / 0.2), inset 0 3px 0 rgb(255 255 255 / 0.35),
       0 6px 14px rgb(0 0 0 / 0.35);
   }
-  .coin-bronze { background: radial-gradient(circle at 35% 30%, #fdba74, #c2410c); }
+  .coin-bronze { background: radial-gradient(circle at 35% 30%, #fdba74, #ea580c); }
   .coin-silver { background: radial-gradient(circle at 35% 30%, #f8fafc, #94a3b8); }
   .coin-gold { background: radial-gradient(circle at 35% 30%, #fef08a, #ca8a04); }
 }

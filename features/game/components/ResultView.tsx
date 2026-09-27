@@ -37,11 +37,11 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
   return (
     <div className="mx-auto w-full max-w-4xl space-y-8 px-4 py-10 text-center">
       <header className="space-y-3">
-        <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-sm font-semibold text-primary">
+        <span className="inline-flex items-center gap-2 rounded-full border border-primary/30 bg-primary/10 px-4 py-1 text-sm font-semibold text-accent">
           <Trophy className="size-4" aria-hidden /> PARTIDA FINALIZADA
         </span>
         <h1 className="font-display text-5xl font-extrabold tracking-tight sm:text-6xl">
-          {title[0]} <span className="bg-linear-to-r from-primary to-p1 bg-clip-text text-transparent">{title[1]}</span>
+          {title[0]} <span className="bg-linear-to-r from-accent to-p1 bg-clip-text text-transparent">{title[1]}</span>
         </h1>
         <p className="text-muted">
           {state.result?.reason === "forfeit" ? "Tu rival abandonó la mesa." : "La mesa ha hablado. Estos son los resultados."}
@@ -51,11 +51,11 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
       {winner && (
         <Card className="mx-auto max-w-md shadow-primary/20">
           <div className="relative mx-auto w-fit">
-            <Avatar avatarId={winner.avatarId} size="lg" className="ring-4 ring-primary" />
+            <Avatar avatarId={winner.avatarId} size="lg" className="ring-4 ring-accent" />
             <Crown className="absolute -top-3 -right-3 size-9 rounded-full bg-gold p-1.5 text-slate-900" aria-hidden />
           </div>
           <h2 className="mt-4 font-display text-3xl font-bold">{winner.nickname}</h2>
-          <p className="font-semibold tracking-wide text-primary">GANADOR DE LA PARTIDA</p>
+          <p className="font-semibold tracking-wide text-accent">GANADOR DE LA PARTIDA</p>
           <hr className="my-5 border-white/10" />
           <p className="text-sm text-muted">GANANCIA</p>
           <p className="font-display text-4xl font-extrabold">{formatMoney(winnerScore?.money ?? 0)}</p>
