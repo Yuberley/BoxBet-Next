@@ -73,7 +73,16 @@ export function GameTable({
         <div className="order-3">{card(left)}</div>
         {state.turn && (
           <div className="order-2">
-            <DicePanel turn={state.turn} canRoll={canAct} isRolling={isRolling} onRoll={onRoll} />
+            <DicePanel
+              turn={state.turn}
+              playerName={current?.nickname ?? ""}
+              seat={current ? seatOf(current.id) : "p1"}
+              // En modo local (viewerId null) todos juegan desde este dispositivo.
+              isMine={viewerId === null || current?.id === viewerId}
+              canRoll={canAct}
+              isRolling={isRolling}
+              onRoll={onRoll}
+            />
           </div>
         )}
         {actions && <div className="order-6">{actions}</div>}

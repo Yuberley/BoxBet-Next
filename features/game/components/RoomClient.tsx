@@ -39,6 +39,8 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
   const [closed, setClosed] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  // Transición propia para el dado: "lanzando…" solo depende de ESTA acción, no de cualquier otra.
+  const [rolling, startRolling] = useTransition();
   const { code, state } = room;
 
   const accept = (next: RoomSnapshot) => setRoom((current) => (next.version > current.version ? next : current));
@@ -46,21 +48,31 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
   const onlineIds = useRoomChannel(code, playerId, { onUpdate: accept, onDelete: () => setClosed(true) });
 
   // UI optimista: la línea se pinta al instante; si el servidor la rechaza, React la revierte sola.
-  const [optimisticState, addOptimisticEdge] = useOptimistic(state, (current: GameState, edge: EdgeRef) => ({
-    ...current,
-    edges: { ...current.edges, [toEdgeKey(edge)]: playerId! },
-    turn: current.turn && { ...current.turn, movesLeft: current.turn.movesLeft - 1 },
-  }));
+  // React REAPLICA las actualizaciones pendientes sobre cada estado nuevo del servidor, así que deben
+  // ser idempotentes: si el servidor ya confirmó la línea, no la descontamos otra vez.
+  const [optimisticState, addOptimisticEdge] = useOptimistic(state, (current: GameState, edge: EdgeRef) => {
+    const key = toEdgeKey(edge);
+    if (current.edges[key] || current.turn?.phase !== "place" || current.turn.movesLeft <= 0) return current;
+    return {
+      ...current,
+      edges: { ...current.edges, [key]: playerId! },
+      turn: { ...current.turn, movesLeft: current.turn.movesLeft - 1 },
+    };
+  });
 
   /** Ejecuta una Server Action dentro de una transición y aplica su resultado. */
-  function run(action: () => Promise<ActionResult | void>, optimistic?: () => void) {
+  function run(action: () => Promise<ActionResult | void>, optimistic?: () => void, start = startTransition) {
     setError(null);
-    startTransition(async () => {
+    start(async () => {
       optimistic?.();
       const result = await action();
       if (!result) return;
-      if (result.ok) accept(result.room);
-      else setError(result.error);
+      // Tras un `await` React ya no sabe que seguimos en la transición: hay que volver a envolver
+      // la actualización. Si no, el estado optimista se descarta antes de tiempo y la UI parpadea.
+      start(() => {
+        if (result.ok) accept(result.room);
+        else setError(result.error);
+      });
     });
   }
 
@@ -117,6 +129,9 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
   }
 
   const isMyTurn = getCurrentPlayer(state)?.id === playerId;
+  // Se puede seguir trazando mientras hay jugadas en vuelo (Next las envía en orden, una tras otra);
+  // el límite lo pone el contador optimista.
+  const hasMovesLeft = state.turn?.phase === "roll" || (optimisticState.turn?.movesLeft ?? 0) > 0;
   const offlineIds = new Set(state.players.filter((p) => !onlineIds.has(p.id)).map((p) => p.id));
 
   return (
@@ -124,10 +139,10 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
       <GameTable
         state={optimisticState}
         viewerId={isPlayer ? playerId : null}
-        canAct={isPlayer && isMyTurn && !pending}
-        isRolling={pending && state.turn?.phase === "roll"}
+        canAct={isPlayer && isMyTurn && !rolling && hasMovesLeft}
+        isRolling={rolling}
         offlineIds={offlineIds}
-        onRoll={() => run(() => rollDiceAction(code))}
+        onRoll={() => run(() => rollDiceAction(code), undefined, startRolling)}
         onPlaceEdge={(edge) => run(() => placeEdgeAction(code, edge), () => addOptimisticEdge(edge))}
         actions={
           isPlayer && (

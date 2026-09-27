@@ -40,6 +40,12 @@
   from { transform: rotateX(0deg) rotateY(0deg); }
 }
 
+@keyframes dice-shake {
+  0%, 100% { transform: rotateX(-20deg) rotateY(25deg) translateY(0); }
+  25% { transform: rotateX(20deg) rotateY(-30deg) translateY(-6px); }
+  75% { transform: rotateX(-35deg) rotateY(40deg) translateY(-3px); }
+}
+
 @keyframes fade-up {
   from { transform: translateY(8px); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -96,6 +102,9 @@ body {
   /* Solo definimos "from": el navegador anima hasta el transform inline del elemento. */
   .dice-rolling {
     animation: dice-roll 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) both;
+  }
+  .dice-shaking {
+    animation: dice-shake 0.35s ease-in-out infinite;
   }
   .dice-face {
     @apply absolute inset-0 grid grid-cols-3 grid-rows-3 rounded-2xl border-2 border-slate-300;

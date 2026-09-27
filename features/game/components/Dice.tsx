@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { cn } from "@/lib/utils";
 
 // Posición de los puntos en una cuadrícula 3×3 (índices 0–8) para cada cara.
 const PIPS: Record<number, number[]> = {
@@ -24,7 +25,7 @@ const FACE_ROTATION: Record<number, [x: number, y: number]> = {
  * Dado 3D hecho solo con CSS. Para relanzar la animación, el padre cambia la `key`
  * del componente: React lo monta de nuevo y la animación CSS arranca desde cero.
  */
-export function Dice({ value, size = "4.5rem" }: { value: number | null; size?: string }) {
+export function Dice({ value, shaking = false, size = "4.5rem" }: { value: number | null; shaking?: boolean; size?: string }) {
   const [x, y] = FACE_ROTATION[value ?? 1];
   const style: CSSProperties = {
     // Dos vueltas completas antes de caer en la cara final.
@@ -38,7 +39,8 @@ export function Dice({ value, size = "4.5rem" }: { value: number | null; size?: 
       role="img"
       aria-label={value ? `Dado: ${value}` : "Dado sin lanzar"}
     >
-      <div className={value ? "dice dice-rolling" : "dice"} style={style}>
+      {/* shaking: mientras esperamos al servidor el dado se agita, así el clic se siente inmediato. */}
+      <div className={cn("dice", value !== null && "dice-rolling", shaking && "dice-shaking")} style={style}>
         {[1, 2, 3, 4, 5, 6].map((face) => (
           <div key={face} className="dice-face">
             {Array.from({ length: 9 }, (_, i) => (
