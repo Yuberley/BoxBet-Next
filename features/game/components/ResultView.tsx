@@ -19,9 +19,8 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
   const winnerId = state.result?.winnerId ?? null;
   const winner = state.players.find((p) => p.id === winnerId);
   const winnerScore = scores.find((s) => s.playerId === winnerId);
-  const standings = [...state.players].sort(
-    (a, b) => scores.find((s) => s.playerId === b.id)!.money - scores.find((s) => s.playerId === a.id)!.money,
-  );
+  const scoreOf = (id: PlayerId) => scores.find((s) => s.playerId === id)!;
+  const standings = [...state.players].sort((a, b) => scoreOf(b.id).money - scoreOf(a.id).money);
 
   const title = !winner
     ? ["¡Empate", "técnico!"]
@@ -100,10 +99,10 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
                 {player.id === viewerId && <span className="ml-2 text-xs text-muted">(tú)</span>}
               </span>
               <span className="text-right">
-                <span className="block font-display font-bold">
-                  {formatMoney(scores.find((s) => s.playerId === player.id)!.money)}
+                <span className="block font-display font-bold">{formatMoney(scoreOf(player.id).money)}</span>
+                <span className="text-xs text-muted">
+                  {scoreOf(player.id).coins} {scoreOf(player.id).coins === 1 ? "moneda" : "monedas"}
                 </span>
-                <span className="text-xs text-muted">{scores.find((s) => s.playerId === player.id)!.coins} monedas</span>
               </span>
             </li>
           ))}

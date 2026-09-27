@@ -8,6 +8,8 @@ import type { RoomSnapshot } from "../room";
  * Suscripción en tiempo real a UNA sala.
  *   - postgres_changes: la DB avisa cada vez que cambia la fila → nuevo estado.
  *   - presence: quién tiene la sala abierta ahora mismo (para mostrar "desconectado").
+ *   - resync: los eventos pueden perderse (red, pestaña dormida). Al (re)conectar o al volver a
+ *     la pestaña leemos el estado actual. Los eventos AVISAN; la fuente de verdad es la DB.
  * El canal se cierra al desmontar el componente (cleanup del efecto).
  */
 export function useRoomChannel(
@@ -23,6 +25,13 @@ export function useRoomChannel(
 
   useEffect(() => {
     const supabase = createClient();
+
+    async function resync() {
+      const { data } = await supabase.from("rooms").select("code, state, version").eq("code", code).maybeSingle();
+      if (data) onUpdate(data as RoomSnapshot);
+      else onDelete();
+    }
+
     const channel = supabase
       .channel(`room:${code}`, { config: { presence: { key: playerId ?? "spectator" } } })
       .on(
@@ -38,10 +47,17 @@ export function useRoomChannel(
         setOnlineIds(new Set(Object.keys(channel.presenceState())));
       })
       .subscribe((status) => {
-        if (status === "SUBSCRIBED" && playerId) channel.track({ at: Date.now() });
+        // SUBSCRIBED se emite también tras cada reconexión: buen momento para ponerse al día.
+        if (status !== "SUBSCRIBED") return;
+        if (playerId) channel.track({ at: Date.now() });
+        resync();
       });
 
+    const onVisible = () => document.visibilityState === "visible" && resync();
+    document.addEventListener("visibilitychange", onVisible);
+
     return () => {
+      document.removeEventListener("visibilitychange", onVisible);
       supabase.removeChannel(channel);
     };
   }, [code, playerId]);
