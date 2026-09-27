@@ -88,24 +88,28 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
       <section className="overflow-hidden rounded-card border border-white/5 bg-surface text-left">
         <h2 className="border-b border-white/5 px-6 py-4 font-display text-lg font-bold">Tabla de posiciones</h2>
         <ol>
-          {standings.map((player, index) => (
-            <li key={player.id} className="flex items-center gap-4 border-b border-white/5 px-6 py-4 last:border-0">
-              <span className={cn("grid size-8 place-items-center rounded-full text-sm font-bold", index === 0 && winner ? "bg-gold text-slate-900" : "bg-white/10")}>
-                {index + 1}
-              </span>
-              <Avatar avatarId={player.avatarId} size="sm" />
-              <span className="flex-1 font-semibold">
-                {player.nickname}
-                {player.id === viewerId && <span className="ml-2 text-xs text-muted">(tú)</span>}
-              </span>
-              <span className="text-right">
-                <span className="block font-display font-bold">{formatMoney(scoreOf(player.id).money)}</span>
-                <span className="text-xs text-muted">
-                  {scoreOf(player.id).coins} {scoreOf(player.id).coins === 1 ? "moneda" : "monedas"}
+          {standings.map((player) => {
+            // Ranking de competencia: con el mismo puntaje se comparte el puesto (1, 1).
+            const rank = standings.findIndex((p) => scoreOf(p.id).money === scoreOf(player.id).money) + 1;
+            return (
+              <li key={player.id} className="flex items-center gap-4 border-b border-white/5 px-6 py-4 last:border-0">
+                <span className={cn("grid size-8 place-items-center rounded-full text-sm font-bold", rank === 1 && winner ? "bg-gold text-slate-900" : "bg-white/10")}>
+                  {rank}
                 </span>
-              </span>
-            </li>
-          ))}
+                <Avatar avatarId={player.avatarId} size="sm" />
+                <span className="flex-1 font-semibold">
+                  {player.nickname}
+                  {player.id === viewerId && <span className="ml-2 text-xs text-muted">(tú)</span>}
+                </span>
+                <span className="text-right">
+                  <span className="block font-display font-bold">{formatMoney(scoreOf(player.id).money)}</span>
+                  <span className="text-xs text-muted">
+                    {scoreOf(player.id).coins} {scoreOf(player.id).coins === 1 ? "moneda" : "monedas"}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
         </ol>
       </section>
     </div>
