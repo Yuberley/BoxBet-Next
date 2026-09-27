@@ -4,3 +4,4 @@ export * from "./constants";
 export * from "./board";
 export * from "./coins";
 export * from "./game";
+export * from "./random";

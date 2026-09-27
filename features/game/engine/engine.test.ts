@@ -16,19 +16,12 @@ import {
   placeEdge,
   resolveTimeouts,
   rollDice,
+  seededRandom,
   type GameResultOf,
   type GameState,
 } from ".";
 
-/** RNG con semilla (mulberry32): mismos números en cada ejecución → tests reproducibles. */
-function seeded(seed: number) {
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
+const seeded = seededRandom;
 
 const unwrap = (result: GameResultOf): GameState => {
   if (!result.ok) throw new Error(result.error);
