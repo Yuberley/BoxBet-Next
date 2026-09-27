@@ -55,6 +55,16 @@ async function requirePlayer(): Promise<string> {
   return id;
 }
 
+/** Ejecuta `fn` y convierte cualquier fallo de infraestructura en un mensaje para el formulario. */
+async function attempt<T>(fn: () => Promise<T>): Promise<{ value: T } | { error: string }> {
+  try {
+    return { value: await fn() };
+  } catch (error) {
+    console.error(error);
+    return { error: "No pudimos conectar con el servidor del juego. Intenta de nuevo." };
+  }
+}
+
 // ─── Formularios (useActionState) ───────────────────────────────────────────
 
 export async function createRoomAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -64,14 +74,17 @@ export async function createRoomAction(_prev: FormState, formData: FormData): Pr
   const bet = Number(formData.get("bet"));
   if (!BET_OPTIONS.includes(bet as (typeof BET_OPTIONS)[number])) return { error: "Apuesta inválida." };
 
-  const playerId = await getPlayerId({ create: true });
-  if (!playerId) return { error: "No se pudo iniciar sesión." };
-  await rememberNickname(nickname);
+  const created = await attempt(async () => {
+    const playerId = await getPlayerId({ create: true });
+    if (!playerId) throw new Error("Sin sesión");
+    const host: Player = { id: playerId, nickname, avatarId: pickAvatar() };
+    return insertRoom(createGame({ host, bet, now: Date.now(), random: Math.random }), playerId);
+  });
+  if ("error" in created) return created;
 
-  const host: Player = { id: playerId, nickname, avatarId: pickAvatar() };
-  const room = await insertRoom(createGame({ host, bet, now: Date.now(), random: Math.random }), playerId);
-  // redirect() lanza una excepción especial: nada después de esta línea se ejecuta.
-  redirect(`/sala/${room.code}`);
+  await rememberNickname(nickname);
+  // redirect() lanza una excepción especial (por eso va FUERA del try): nada después se ejecuta.
+  redirect(`/sala/${created.value.code}`);
 }
 
 export async function joinRoomAction(_prev: FormState, formData: FormData): Promise<FormState> {
@@ -81,16 +94,20 @@ export async function joinRoomAction(_prev: FormState, formData: FormData): Prom
   const code = String(formData.get("code") ?? "");
   if (!ROOM_CODE_PATTERN.test(code)) return { error: "El código debe tener 4 dígitos." };
 
-  const playerId = await getPlayerId({ create: true });
-  if (!playerId) return { error: "No se pudo iniciar sesión." };
-  await rememberNickname(nickname);
-
-  const result = await mutateRoom(code, (state, now) => {
-    const taken = state.players.map((p) => p.avatarId);
-    return joinGame(state, { id: playerId, nickname, avatarId: pickAvatar(taken) }, now);
+  const joined = await attempt(async () => {
+    const playerId = await getPlayerId({ create: true });
+    if (!playerId) throw new Error("Sin sesión");
+    return mutateRoom(code, (state, now) => {
+      const taken = state.players.map((p) => p.avatarId);
+      return joinGame(state, { id: playerId, nickname, avatarId: pickAvatar(taken) }, now);
+    });
   });
+  if ("error" in joined) return joined;
+  const result = joined.value;
   // Si ya estaba dentro (p. ej. recargó), simplemente lo llevamos a la sala.
   if (!result.ok && result.error !== "ALREADY_JOINED") return { error: MUTATE_ERRORS[result.error] };
+
+  await rememberNickname(nickname);
   redirect(`/sala/${code}`);
 }
 
