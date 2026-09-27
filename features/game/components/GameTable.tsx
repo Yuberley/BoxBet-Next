@@ -65,14 +65,18 @@ export function GameTable({
     );
   };
 
+  // En móvil los <aside> usan `display: contents`: sus hijos pasan a ser celdas del grid
+  // y `order` los reacomoda (tablero → dado → jugadores). En escritorio vuelven a ser columnas.
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-5 px-4 py-6 lg:grid-cols-[20rem_1fr_20rem] lg:items-center lg:gap-8 lg:py-10">
-      <aside className="order-2 space-y-4 lg:order-1">
-        {card(left)}
+    <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[20rem_1fr_20rem] lg:items-center lg:gap-8 lg:py-10">
+      <aside className="contents lg:order-1 lg:block lg:space-y-4">
+        <div className="order-3">{card(left)}</div>
         {state.turn && (
-          <DicePanel turn={state.turn} canRoll={canAct} isRolling={isRolling} onRoll={onRoll} />
+          <div className="order-2">
+            <DicePanel turn={state.turn} canRoll={canAct} isRolling={isRolling} onRoll={onRoll} />
+          </div>
         )}
-        {actions}
+        {actions && <div className="order-6">{actions}</div>}
       </aside>
 
       <div className="order-1 flex flex-col items-center gap-4 lg:order-2">
@@ -86,9 +90,11 @@ export function GameTable({
         {showTimer && state.turn && <TurnTimer deadline={state.turn.deadline} />}
       </div>
 
-      <aside className="order-3 space-y-4">
-        {card(right)}
-        <GameLog state={state} seatOf={seatOf} />
+      <aside className="contents lg:order-3 lg:block lg:space-y-4">
+        <div className="order-4">{card(right)}</div>
+        <div className="order-5">
+          <GameLog state={state} seatOf={seatOf} />
+        </div>
       </aside>
     </div>
   );

@@ -13,10 +13,10 @@ export function SoundToggle() {
       onClick={() => setSoundEnabled(!enabled)}
       // aria-pressed comunica a lectores de pantalla que es un interruptor.
       aria-pressed={enabled}
-      className="flex items-center gap-2 rounded-full px-3 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
+      className="flex items-center gap-2 rounded-full px-2.5 py-2 text-sm text-slate-300 transition hover:bg-white/5 hover:text-white"
     >
       <Icon className="size-4" aria-hidden />
-      Sonido
+      <span className="sr-only sm:not-sr-only">Sonido</span>
     </button>
   );
 }

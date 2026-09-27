@@ -14,12 +14,13 @@ export function Header() {
           </span>
           BoxBet
         </Link>
-        <div className="flex items-center gap-1 text-sm">
-          <Link href="/reglas" className="rounded-full px-3 py-2 text-slate-300 hover:bg-white/5 hover:text-white">
+        <div className="flex items-center gap-0.5 text-sm whitespace-nowrap sm:gap-1">
+          <Link href="/reglas" className="rounded-full px-2.5 py-2 text-slate-300 hover:bg-white/5 hover:text-white">
             Reglas
           </Link>
-          <Link href="/local" className="rounded-full px-3 py-2 text-slate-300 hover:bg-white/5 hover:text-white">
-            Modo local
+          <Link href="/local" className="rounded-full px-2.5 py-2 text-slate-300 hover:bg-white/5 hover:text-white">
+            <span className="sm:hidden">Local</span>
+            <span className="hidden sm:inline">Modo local</span>
           </Link>
           <SoundToggle />
         </div>

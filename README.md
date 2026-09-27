@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BoxBet · Next.js
 
-## Getting Started
+Juego de "cerrar cajas" por turnos para 2 jugadores: lanzas un dado, trazas líneas y, si cierras una celda, ganas su moneda.
+Proyecto de clase: **el objetivo es entender los conceptos**, no memorizar la sintaxis de un framework.
 
-First, run the development server:
+## Arrancar
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # completa las 3 variables
+npm run dev                  # http://localhost:3000
+npm test                     # pruebas del motor
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Sin variables de Supabase funcionan igual `/local` (dos jugadores, un dispositivo) y `/reglas`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Supabase (una sola vez)
+1. **SQL Editor** → ejecuta [`supabase/migrations/20260927000000_rooms.sql`](supabase/migrations/20260927000000_rooms.sql).
+2. **Authentication → Sign In / Providers** → activa **Anonymous sign-ins**.
+3. **Project Settings → API Keys** → copia la publishable key y la secret key en `.env.local`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Vercel
+Importa el repo, define las mismas 3 variables en *Settings → Environment Variables* y despliega.
 
-## Learn More
+## Arquitectura en una imagen
 
-To learn more about Next.js, take a look at the following resources:
+```
+Navegador                         Next.js (Vercel)                    Supabase
+─────────                         ────────────────                    ────────
+RoomClient ── Server Action ──▶  actions.ts ─▶ motor puro ─▶ rooms.ts ─▶ Postgres (rooms)
+    ▲                            (valida y decide)                          │
+    └──────────────── Realtime (postgres_changes) ◀─────────────────────────┘
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Pregunta | Respuesta | Dónde |
+|---|---|---|
+| ¿Quién **decide** si una jugada vale? | El servidor, con el motor puro | `features/game/actions.ts` |
+| ¿Quién **recuerda** el estado? | Postgres (un JSONB por sala) | `features/game/server/rooms.ts` |
+| ¿Cómo se **entera** el rival? | Supabase Realtime | `features/game/hooks/useRoomChannel.ts` |
+| ¿Quién **es** cada jugador? | Usuario anónimo de Supabase (JWT verificado) | `lib/supabase/server.ts` |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Mapa de conceptos → código
 
-## Deploy on Vercel
+| Concepto | Archivo |
+|---|---|
+| Lógica de negocio independiente del framework (funciones puras) | `features/game/engine/game.ts` |
+| Pruebas unitarias e inyección de dependencias (`now`, `random`) | `features/game/engine/engine.test.ts` |
+| Programación dinámica (reparto exacto de monedas) | `features/game/engine/coins.ts` |
+| Estado derivado (el puntaje se calcula, no se guarda) | `getScores` en `game.ts` |
+| Evaluación perezosa del tiempo (sin procesos en segundo plano) | `resolveTimeouts` en `game.ts` |
+| Concurrencia optimista (compare-and-swap con `version`) | `mutateRoom` en `rooms.ts` |
+| Patrón adaptador: mismo motor, dos "backends" | `local/LocalGame.tsx` (useReducer) vs `components/RoomClient.tsx` (red) |
+| Server vs Client Components | `app/sala/[code]/page.tsx` vs `RoomClient.tsx` |
+| UI optimista (`useOptimistic`) | `RoomClient.tsx` |
+| Estado externo a React (`useSyncExternalStore`) | `hooks/useNow.ts`, `components/sound/sound-preference.ts` |
+| Design tokens (una fuente de verdad visual) | `app/globals.css` (`@theme`) |
+| Accesibilidad: foco, `aria-live`, áreas de toque grandes | `Board.tsx`, `DicePanel.tsx`, `CodeInput.tsx` |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Estructura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+app/                      rutas (cada carpeta = una URL)
+  page.tsx                inicio: crear / unirse
+  sala/[code]/            sala de espera, mesa y resultados
+  local/  reglas/
+features/game/
+  engine/                 ⭐ reglas del juego (TypeScript puro + tests)
+  server/rooms.ts         acceso a la base de datos
+  actions.ts              Server Actions
+  components/  hooks/  local/
+components/ui/            piezas de interfaz reutilizables
+lib/supabase/             clientes de Supabase (navegador, servidor, proxy)
+proxy.ts                  refresca la sesión en cada request (antes "middleware")
+```
+
+## Historia del proyecto
+
+Cada fase quedó como un tag de git para recorrer la evolución en clase: `git checkout fase-2-motor`.

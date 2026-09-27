@@ -1,69 +1,44 @@
-import Image from "next/image";
+import Link from "next/link";
+import { cookies } from "next/headers";
+import { CircleHelp, Gamepad2, Users } from "lucide-react";
+import { LobbyForm } from "@/features/game/components/LobbyForm";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
 
-export default function Home() {
+// Server Component: lee la cookie del apodo en el servidor y la pasa como prop al formulario.
+export default async function HomePage() {
+  const nickname = (await cookies()).get("boxbet_nickname")?.value ?? "";
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex flex-1 flex-col gap-12 py-12 sm:py-16">
+      <header className="mx-auto max-w-4xl space-y-5 px-4 text-center">
+        <span className="mx-auto grid size-16 place-items-center rounded-full bg-surface shadow-lg shadow-primary/10">
+          <Gamepad2 className="size-8 text-primary" aria-hidden />
+        </span>
+        <h1 className="font-display text-5xl font-extrabold tracking-tight text-balance sm:text-7xl">
+          Bienvenido a la Arena
+        </h1>
+        <p className="mx-auto max-w-2xl text-lg text-balance text-muted">
+          El clásico de monedas, ahora digital. Crea una sala para desafiar a un amigo o únete con un código existente.
+        </p>
+      </header>
+
+      {isSupabaseConfigured ? (
+        <LobbyForm defaultNickname={nickname} />
+      ) : (
+        <p className="mx-auto max-w-md rounded-2xl border border-gold/30 bg-gold/10 p-4 text-center text-sm">
+          El modo en línea necesita las variables de Supabase en <code>.env.local</code>. Mientras tanto, prueba el{" "}
+          <Link href="/local" className="font-semibold underline">modo local</Link>.
+        </p>
+      )}
+
+      <footer className="flex justify-center gap-6 text-sm text-muted">
+        <Link href="/reglas" className="flex items-center gap-1.5 hover:text-white">
+          <CircleHelp className="size-4" aria-hidden /> ¿Cómo jugar?
+        </Link>
+        <Link href="/local" className="flex items-center gap-1.5 hover:text-white">
+          <Users className="size-4" aria-hidden /> Jugar en este dispositivo
+        </Link>
+      </footer>
     </div>
   );
 }
