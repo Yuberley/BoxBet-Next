@@ -11,10 +11,12 @@ interface ResultViewProps {
   viewerId: PlayerId | null;
   onPlayAgain: () => void;
   playAgainLabel?: string;
+  /** Mensaje destacado sobre los botones (p. ej. "Profe quiere la revancha"). */
+  notice?: string;
   isBusy?: boolean;
 }
 
-export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jugar de nuevo", isBusy }: ResultViewProps) {
+export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jugar de nuevo", notice, isBusy }: ResultViewProps) {
   const scores = getScores(state);
   const winnerId = state.result?.winnerId ?? null;
   const winner = state.players.find((p) => p.id === winnerId);
@@ -73,6 +75,11 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
         ))}
       </dl>
 
+      {notice && (
+        <p role="status" className="mx-auto w-fit animate-fade-up rounded-full border border-gold/40 bg-gold/10 px-5 py-2 font-semibold text-gold">
+          {notice}
+        </p>
+      )}
       <div className="flex flex-wrap justify-center gap-3">
         <Link
           href="/"

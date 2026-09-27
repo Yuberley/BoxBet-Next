@@ -6,7 +6,17 @@ import { useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react
  * Entrada de código de N dígitos (estilo OTP) con avance automático, borrar y pegar.
  * Envía el valor unido en un input oculto `name` → funciona dentro de cualquier <form>.
  */
-export function CodeInput({ name, length = 4, defaultValue = "" }: { name: string; length?: number; defaultValue?: string }) {
+interface CodeInputProps {
+  name: string;
+  length?: number;
+  defaultValue?: string;
+  /** Marca el grupo como inválido (borde rojo + aria-invalid en cada dígito). */
+  invalid?: boolean;
+  /** id del texto de ayuda/error asociado. */
+  describedBy?: string;
+}
+
+export function CodeInput({ name, length = 4, defaultValue = "", invalid = false, describedBy }: CodeInputProps) {
   const [digits, setDigits] = useState(() => Array.from({ length }, (_, i) => defaultValue[i] ?? ""));
   const refs = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -50,8 +60,10 @@ export function CodeInput({ name, length = 4, defaultValue = "" }: { name: strin
           autoComplete="one-time-code"
           maxLength={1}
           aria-label={`Dígito ${index + 1} de ${length}`}
+          aria-invalid={invalid}
+          aria-describedby={describedBy}
           placeholder="–"
-          className="h-18 w-14 rounded-full border-2 border-line bg-surface text-center font-display text-3xl font-bold text-white placeholder:text-slate-500 focus:border-accent focus:outline-none sm:w-16"
+          className={`h-18 w-14 rounded-full border-2 ${invalid ? "border-danger" : "border-line"} bg-surface text-center font-display text-3xl font-bold text-white placeholder:text-slate-500 focus:border-accent focus:outline-none sm:w-16`}
         />
       ))}
     </div>

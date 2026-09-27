@@ -109,6 +109,8 @@ export function LocalGame() {
     <GameTable
       state={state}
       viewerId={null}
+      sharedDevice
+      title="Partida local"
       canAct
       showTimer={false}
       onRoll={() => dispatch({ type: "roll", seed: newSeed(), now: Date.now() })}

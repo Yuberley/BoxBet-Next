@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Link2, LogOut, UserPlus } from "lucide-react";
+import { Check, Copy, LogOut, Share2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card, Well } from "@/components/ui/Card";
 import { formatDuration, formatMoney } from "@/lib/utils";
@@ -28,6 +28,21 @@ export function WaitingRoom({ code, state, onLeave, leaving }: WaitingRoomProps)
     setTimeout(() => setCopied(null), 1800);
   }
 
+  // Mejora progresiva: en el celular abre la hoja nativa de compartir (WhatsApp, etc.);
+  // donde no existe la Web Share API, copia el enlace.
+  async function invite() {
+    const url = `${location.origin}/sala/${code}`;
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: "BoxBet", text: `${host.nickname} te desafía en BoxBet. Sala ${code}`, url });
+        return;
+      } catch {
+        return; // el usuario cerró la hoja de compartir: no es un error
+      }
+    }
+    await copy("link");
+  }
+
   return (
     <div className="mx-auto w-full max-w-2xl space-y-6 px-4 py-10">
       <Card className="relative overflow-hidden p-0 sm:p-0">
@@ -44,17 +59,28 @@ export function WaitingRoom({ code, state, onLeave, leaving }: WaitingRoomProps)
           <Well className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:px-8">
             <div className="text-center sm:text-left">
               <p className="text-xs font-semibold tracking-[0.25em] text-muted">CÓDIGO DE SALA</p>
-              <p className="font-mono text-5xl font-bold tracking-[0.3em]">{code}</p>
+              {/* Dígitos separados para el lector ("5 1 0 9", no "cinco mil ciento nueve").
+                  aria-label en un <p> genérico no se anuncia: usamos texto sr-only + aria-hidden. */}
+              <p className="font-mono text-5xl font-bold tracking-[0.3em]">
+                <span aria-hidden>{code}</span>
+                <span className="sr-only">{code.split("").join(" ")}</span>
+              </p>
             </div>
             <div className="flex gap-2">
-              <Button onClick={() => copy("code")} aria-live="polite">
-                {copied === "code" ? <Check className="size-4" /> : <Copy className="size-4" />}
+              <Button onClick={() => copy("code")}>
+                {copied === "code" ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
                 {copied === "code" ? "¡Copiado!" : "Copiar"}
               </Button>
-              <Button variant="ghost" onClick={() => copy("link")} aria-label="Copiar enlace de invitación">
-                {copied === "link" ? <Check className="size-4" /> : <Link2 className="size-4" />}
+              {/* Botón con texto visible: un icono solo es menos descubrible que una palabra. */}
+              <Button variant="ghost" onClick={invite}>
+                {copied === "link" ? <Check className="size-4" aria-hidden /> : <Share2 className="size-4" aria-hidden />}
+                {copied === "link" ? "Enlace copiado" : "Invitar"}
               </Button>
             </div>
+            {/* Confirmación para lectores de pantalla (el cambio de texto del botón no siempre se anuncia). */}
+            <p role="status" className="sr-only">
+              {copied === "code" ? "Código copiado" : copied === "link" ? "Enlace de invitación copiado" : ""}
+            </p>
           </Well>
 
           <div className="flex items-center justify-center gap-6 sm:gap-12">

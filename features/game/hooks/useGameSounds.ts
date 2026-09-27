@@ -24,6 +24,13 @@ export function useGameSounds(state: GameState, viewerId: PlayerId | null) {
       play(viewerId && winnerId && winnerId !== viewerId ? "lose" : "win");
     } else if (prev.status === "waiting" && state.status === "playing") {
       play("start");
+    } else if (
+      viewerId &&
+      state.turn?.phase === "roll" &&
+      state.players[state.turn.playerIndex]?.id === viewerId &&
+      prev.turn?.number !== state.turn.number
+    ) {
+      play("turn"); // "¡te toca!": aviso sonoro por si el jugador no está mirando
     } else if (owned(state) > owned(prev)) {
       play("capture");
     } else if (Object.keys(state.edges).length > Object.keys(prev.edges).length) {

@@ -1,10 +1,11 @@
 // Efectos de sonido sintetizados con Web Audio API: sin archivos de audio que descargar.
 
-export type SoundName = "start" | "dice" | "edge" | "capture" | "win" | "lose";
+export type SoundName = "start" | "turn" | "dice" | "edge" | "capture" | "win" | "lose";
 
 // Cada sonido es una lista de notas: [frecuencia Hz, retraso s, duración s, volumen].
 const SOUNDS: Record<SoundName, Array<[number, number, number, number]>> = {
   start: [[523.25, 0, 0.4, 0.08], [659.25, 0, 0.4, 0.06], [783.99, 0, 0.4, 0.05]],
+  turn: [[659.25, 0, 0.12, 0.06], [880, 0.12, 0.18, 0.07]],
   dice: [[392, 0, 0.08, 0.05], [523.25, 0.04, 0.08, 0.04]],
   edge: [[880, 0, 0.06, 0.03]],
   capture: [[1046.5, 0, 0.25, 0.09], [1318.51, 0, 0.22, 0.07], [2093, 0.03, 0.15, 0.04]],

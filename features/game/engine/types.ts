@@ -81,8 +81,9 @@ export interface GameState {
   createdAt: number;
   startedAt: number | null;
   finishedAt: number | null;
-  /** Código de la sala de revancha, si alguien la pidió. */
+  /** Código de la sala de revancha y quién la pidió (para avisarle al otro). */
   rematchCode: string | null;
+  rematchBy?: PlayerId | null;
 }
 
 /** Fuente de aleatoriedad inyectable: en producción `Math.random`, en tests una semilla fija. */

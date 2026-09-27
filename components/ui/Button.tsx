@@ -7,6 +7,8 @@ const variants = {
   secondary: "bg-white text-slate-900 hover:bg-slate-200",
   ghost: "text-muted hover:bg-white/5 hover:text-white",
   turn: "bg-p1 text-slate-950 shadow-lg shadow-p1/30 hover:brightness-110",
+  // Acciones destructivas: rojo reservado solo para esto (el color comunica consecuencia).
+  danger: "bg-red-600 text-white hover:bg-red-700",
 };
 
 const sizes = {

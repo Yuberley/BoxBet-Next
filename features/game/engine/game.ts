@@ -144,8 +144,8 @@ export function resolveTimeouts(state: GameState, now: number, random: Random): 
   return next;
 }
 
-export function setRematch(state: GameState, code: string): GameState {
-  return { ...state, rematchCode: code };
+export function setRematch(state: GameState, code: string, by: PlayerId): GameState {
+  return { ...state, rematchCode: code, rematchBy: by };
 }
 
 // ─── Selectores (estado derivado: se calcula, no se guarda) ─────────────────

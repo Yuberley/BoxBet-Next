@@ -9,7 +9,8 @@ export interface RoomSnapshot {
 
 export type ActionResult = { ok: true; room: RoomSnapshot } | { ok: false; error: string };
 
-export type FormState = { error?: string } | undefined;
+/** Resultado de un formulario. `field` dice QUÉ campo falló, para marcarlo y llevarle el foco. */
+export type FormState = { error?: string; field?: "nickname" | "code" } | undefined;
 
 export const ROOM_CODE_PATTERN = /^\d{4}$/;
 

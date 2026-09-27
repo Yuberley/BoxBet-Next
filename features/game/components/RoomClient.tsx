@@ -5,6 +5,8 @@ import Link from "next/link";
 import { Flag } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { Toast, type ToastMessage } from "@/components/ui/Toast";
 import {
   claimTimeoutAction,
   leaveRoomAction,
@@ -37,7 +39,9 @@ interface RoomClientProps {
 export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClientProps) {
   const [room, setRoom] = useState(initialRoom);
   const [closed, setClosed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastMessage | null>(null);
+  const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const notify = (text: string, tone: ToastMessage["tone"] = "error") => setToast({ id: Date.now(), text, tone });
   const [pending, startTransition] = useTransition();
   // Transición propia para el dado: "lanzando…" solo depende de ESTA acción, no de cualquier otra.
   const [rolling, startRolling] = useTransition();
@@ -56,13 +60,13 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
     return {
       ...current,
       edges: { ...current.edges, [key]: playerId! },
-      turn: { ...current.turn, movesLeft: current.turn.movesLeft - 1 },
+      turn: { ...current.turn, movesLeft: current.turn.movesLeft - 1, placed: [...(current.turn.placed ?? []), key] },
     };
   });
 
   /** Ejecuta una Server Action dentro de una transición y aplica su resultado. */
   function run(action: () => Promise<ActionResult | void>, optimistic?: () => void, start = startTransition) {
-    setError(null);
+    setToast(null);
     start(async () => {
       optimistic?.();
       const result = await action();
@@ -71,7 +75,7 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
       // la actualización. Si no, el estado optimista se descarta antes de tiempo y la UI parpadea.
       start(() => {
         if (result.ok) accept(result.room);
-        else setError(result.error);
+        else notify(result.error);
       });
     });
   }
@@ -101,11 +105,7 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
   }
 
   const isPlayer = state.players.some((p) => p.id === playerId);
-  const toast = error && (
-    <p role="alert" className="fixed inset-x-4 bottom-4 z-30 mx-auto max-w-sm animate-fade-up rounded-2xl bg-danger px-4 py-3 text-center font-semibold text-slate-950 shadow-xl">
-      {error}
-    </p>
-  );
+  const toastView = toast && <Toast key={toast.id} message={toast} onClose={() => setToast(null)} />;
 
   if (state.status === "waiting") {
     if (!isPlayer) return <JoinInvite code={code} state={state} defaultNickname={defaultNickname} />;
@@ -114,6 +114,8 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
 
   if (state.status === "finished") {
     const rematchPending = Boolean(state.rematchCode);
+    // Si el RIVAL pidió la revancha, se lo decimos claramente (antes solo cambiaba el texto del botón).
+    const requester = state.players.find((p) => p.id === state.rematchBy && p.id !== playerId);
     return (
       <>
         <ResultView
@@ -121,9 +123,10 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
           viewerId={playerId}
           isBusy={pending || !isPlayer}
           playAgainLabel={rematchPending ? "Aceptar revancha" : "Pedir revancha"}
+          notice={requester ? `${requester.nickname} quiere la revancha. ¿Aceptas?` : undefined}
           onPlayAgain={() => run(() => rematchAction(code))}
         />
-        {toast}
+        {toastView}
       </>
     );
   }
@@ -138,6 +141,7 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
     <>
       <GameTable
         state={optimisticState}
+        title={`Partida en la sala ${code}`}
         viewerId={isPlayer ? playerId : null}
         canAct={isPlayer && isMyTurn && !rolling && hasMovesLeft}
         isRolling={rolling}
@@ -146,11 +150,7 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
         onPlaceEdge={(edge) => run(() => placeEdgeAction(code, edge), () => addOptimisticEdge(edge))}
         actions={
           isPlayer && (
-            <Button
-              variant="ghost"
-              className="w-full"
-              onClick={() => confirm("¿Seguro? Si abandonas, tu rival gana la partida.") && run(() => leaveRoomAction(code))}
-            >
+            <Button variant="ghost" className="w-full" onClick={() => setConfirmingLeave(true)}>
               <Flag className="size-4" aria-hidden /> Abandonar partida
             </Button>
           )
@@ -159,7 +159,19 @@ export function RoomClient({ initialRoom, playerId, defaultNickname }: RoomClien
       {!isPlayer && (
         <p className="pb-6 text-center text-sm text-muted">Estás viendo la partida como espectador.</p>
       )}
-      {toast}
+      <ConfirmDialog
+        open={confirmingLeave}
+        title="¿Abandonar la partida?"
+        description="Si te retiras, tu rival gana automáticamente y la partida termina."
+        confirmLabel="Sí, abandonar"
+        cancelLabel="Seguir jugando"
+        onCancel={() => setConfirmingLeave(false)}
+        onConfirm={() => {
+          setConfirmingLeave(false);
+          run(() => leaveRoomAction(code));
+        }}
+      />
+      {toastView}
     </>
   );
 }

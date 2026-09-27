@@ -12,12 +12,14 @@ interface DicePanelProps {
   seat: Seat;
   /** ¿El turno es de quien mira? Si no, el panel informa en vez de ofrecer el botón. */
   isMine: boolean;
+  /** Modo local: todos juegan en este dispositivo, así que el título dice de quién es el turno. */
+  sharedDevice?: boolean;
   canRoll: boolean;
   isRolling: boolean;
   onRoll: () => void;
 }
 
-export function DicePanel({ turn, playerName, seat, isMine, canRoll, isRolling, onRoll }: DicePanelProps) {
+export function DicePanel({ turn, playerName, seat, isMine, sharedDevice = false, canRoll, isRolling, onRoll }: DicePanelProps) {
   const accent = seat === "p1" ? "text-p1" : "text-p2";
 
   let status;
@@ -49,7 +51,7 @@ export function DicePanel({ turn, playerName, seat, isMine, canRoll, isRolling, 
     <section className="rounded-card bg-surface p-5" aria-label="Dado">
       <header className="mb-4 flex items-center justify-between">
         <h2 className="text-sm font-semibold tracking-wide text-muted">
-          {isMine ? "TU DADO" : `DADO DE ${playerName.toUpperCase()}`}
+          {sharedDevice ? `TURNO DE ${playerName.toUpperCase()}` : isMine ? "TU DADO" : `DADO DE ${playerName.toUpperCase()}`}
         </h2>
         <span className="rounded-full bg-white/5 px-2 py-0.5 text-xs text-muted">1d6</span>
       </header>

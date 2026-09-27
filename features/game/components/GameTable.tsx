@@ -1,8 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { getCurrentPlayer, getScores, type EdgeRef, type GameState, type PlayerId } from "../engine";
+import { Keyboard } from "lucide-react";
+import { getCurrentPlayer, getScores, type EdgeKey, type EdgeRef, type GameState, type PlayerId } from "../engine";
 import { useGameSounds } from "../hooks/useGameSounds";
+import { useTurnAttention } from "../hooks/useTurnAttention";
 import { Board, type Seat } from "./Board";
 import { DicePanel } from "./DicePanel";
 import { GameLog } from "./GameLog";
@@ -13,6 +15,10 @@ interface GameTableProps {
   state: GameState;
   /** Desde qué jugador se mira la mesa (null = modo local o espectador). */
   viewerId: PlayerId | null;
+  /** Modo local: todos juegan desde este dispositivo (≠ espectador, que solo mira). */
+  sharedDevice?: boolean;
+  /** Título accesible de la vista (h1 oculto visualmente): p. ej. "Partida en la sala 1234". */
+  title: string;
   /** ¿Quien mira puede actuar ahora? Lo decide el adaptador (local u online). */
   canAct: boolean;
   isRolling?: boolean;
@@ -30,6 +36,8 @@ interface GameTableProps {
 export function GameTable({
   state,
   viewerId,
+  sharedDevice = false,
+  title,
   canAct,
   isRolling = false,
   showTimer = true,
@@ -39,10 +47,20 @@ export function GameTable({
   actions,
 }: GameTableProps) {
   useGameSounds(state, viewerId);
+  const announcement = useTurnAttention(state, viewerId, sharedDevice);
 
   const seatOf = (id: PlayerId): Seat => (state.players[0]?.id === id ? "p1" : "p2");
+  const nameOf = (id: PlayerId) => state.players.find((p) => p.id === id)?.nickname ?? "";
   const scores = getScores(state);
   const current = getCurrentPlayer(state);
+  const isMyTurn = sharedDevice || (viewerId !== null && current?.id === viewerId);
+
+  // "¿Qué acaba de pasar?": resaltamos lo que jugó el OTRO (lo propio ya lo vi al hacerlo).
+  // En modo local (viewerId null) se resalta el turno anterior: ayuda al pasar el dispositivo.
+  const recentKeys = new Set<EdgeKey>([
+    ...(state.lastTurn && state.lastTurn.playerId !== viewerId ? state.lastTurn.edges : []),
+    ...(viewerId && current && current.id !== viewerId ? (state.turn?.placed ?? []) : []),
+  ]);
 
   // El jugador que mira va a la izquierda (como en el mockup).
   const [left, right] =
@@ -58,8 +76,7 @@ export function GameTable({
         coins={score.coins}
         isTurn={current?.id === player.id}
         isViewer={player.id === viewerId}
-        // En modo local todos juegan desde el mismo dispositivo: siempre es "tu" turno.
-        turnLabel={viewerId === null || player.id === viewerId ? "TU TURNO" : "SU TURNO"}
+            turnLabel={sharedDevice || player.id === viewerId ? "TU TURNO" : "SU TURNO"}
         offline={offlineIds?.has(player.id)}
       />
     );
@@ -69,6 +86,12 @@ export function GameTable({
   // y `order` los reacomoda (tablero → dado → jugadores). En escritorio vuelven a ser columnas.
   return (
     <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[20rem_1fr_20rem] lg:items-center lg:gap-8 lg:py-10">
+      {/* Estructura semántica: cada vista tiene un h1, aunque visualmente no haga falta. */}
+      <h1 className="sr-only">{title}</h1>
+      {/* Región viva: el lector de pantalla lee cada cambio de este texto (turnos, capturas). */}
+      <p role="status" aria-live="polite" className="sr-only">
+        {announcement}
+      </p>
       <aside className="contents lg:order-1 lg:block lg:space-y-4">
         <div className="order-3">{card(left)}</div>
         {state.turn && (
@@ -78,7 +101,8 @@ export function GameTable({
               playerName={current?.nickname ?? ""}
               seat={current ? seatOf(current.id) : "p1"}
               // En modo local (viewerId null) todos juegan desde este dispositivo.
-              isMine={viewerId === null || current?.id === viewerId}
+              isMine={isMyTurn}
+              sharedDevice={sharedDevice}
               canRoll={canAct}
               isRolling={isRolling}
               onRoll={onRoll}
@@ -92,10 +116,19 @@ export function GameTable({
         <Board
           state={state}
           seatOf={seatOf}
+          nameOf={nameOf}
           activeSeat={current ? seatOf(current.id) : null}
           interactive={canAct && state.turn?.phase === "place"}
+          recentKeys={recentKeys}
           onPlaceEdge={onPlaceEdge}
         />
+        {/* Ayuda contextual solo en los primeros turnos: enseña sin estorbar a quien ya sabe. */}
+        {isMyTurn && state.turn?.phase === "place" && state.turn.number <= 2 && (
+          <p className="flex items-center gap-2 text-center text-sm text-muted">
+            <Keyboard className="size-4 shrink-0" aria-hidden />
+            Toca una línea libre para trazarla · con teclado: flechas y Enter
+          </p>
+        )}
         {showTimer && state.turn && <TurnTimer deadline={state.turn.deadline} />}
       </div>
 

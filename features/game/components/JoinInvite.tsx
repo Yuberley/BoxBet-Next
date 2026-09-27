@@ -35,11 +35,16 @@ export function JoinInvite({ code, state, defaultNickname }: { code: string; sta
           minLength={2}
           maxLength={16}
           required
+          autoComplete="nickname"
+          hint="Así te verá tu rival (2 a 16 caracteres)."
+          error={result?.field === "nickname" ? result.error : undefined}
           className="text-left"
         />
-        <p role="alert" className="min-h-5 text-sm text-danger">
-          {result?.error}
-        </p>
+        {result?.error && result.field !== "nickname" && (
+          <p role="alert" className="text-sm text-danger">
+            {result.error}
+          </p>
+        )}
         <Button type="submit" size="lg" className="w-full" disabled={pending}>
           <LogIn className="size-5" aria-hidden /> {pending ? "Entrando…" : "Aceptar desafío"}
         </Button>

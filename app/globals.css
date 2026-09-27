@@ -33,6 +33,8 @@
 
   --animate-pop: pop 0.35s ease-out;
   --animate-fade-up: fade-up 0.4s ease-out both;
+  /* Jugada nueva del rival: 3 destellos y luego queda un halo sutil (visibilidad del cambio). */
+  --animate-edge-new: edge-new 0.8s ease-in-out 3 both;
 }
 
 @keyframes pop {
@@ -49,6 +51,11 @@
   0%, 100% { transform: rotateX(-20deg) rotateY(25deg) translateY(0); }
   25% { transform: rotateX(20deg) rotateY(-30deg) translateY(-6px); }
   75% { transform: rotateX(-35deg) rotateY(40deg) translateY(-3px); }
+}
+
+@keyframes edge-new {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 255 255 / 0); filter: brightness(1); }
+  50% { box-shadow: 0 0 0 4px rgb(255 255 255 / 0.55); filter: brightness(1.5); }
 }
 
 @keyframes fade-up {
