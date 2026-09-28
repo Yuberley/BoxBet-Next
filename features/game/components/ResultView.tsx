@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { cn, formatDuration, formatMoney } from "@/lib/utils";
 import { getPot, getScores, type GameState, type PlayerId } from "../engine";
+import { describeResult, rankPlayers } from "../result-copy";
 import { Avatar } from "./Avatar";
 
 interface ResultViewProps {
@@ -21,14 +22,8 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
   const winnerId = state.result?.winnerId ?? null;
   const winner = state.players.find((p) => p.id === winnerId);
   const winnerScore = scores.find((s) => s.playerId === winnerId);
-  const scoreOf = (id: PlayerId) => scores.find((s) => s.playerId === id)!;
-  const standings = [...state.players].sort((a, b) => scoreOf(b.id).money - scoreOf(a.id).money);
-
-  const title = !winner
-    ? ["¡Empate", "técnico!"]
-    : viewerId && viewerId !== winnerId
-      ? ["Buena", "partida"]
-      : ["¡Victoria", "absoluta!"];
+  const standings = rankPlayers(state);
+  const { title, subtitle } = describeResult(state, viewerId);
 
   const stats = [
     { icon: PiggyBank, label: "Pozo en juego", value: formatMoney(getPot(state)) },
@@ -45,9 +40,7 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
         <h1 className="font-display text-5xl font-extrabold tracking-tight sm:text-6xl">
           {title[0]} <span className="bg-linear-to-r from-accent to-p1 bg-clip-text text-transparent">{title[1]}</span>
         </h1>
-        <p className="text-muted">
-          {state.result?.reason === "forfeit" ? "Tu rival abandonó la mesa." : "La mesa ha hablado. Estos son los resultados."}
-        </p>
+        <p className="text-muted">{subtitle}</p>
       </header>
 
       {winner && (
@@ -95,28 +88,24 @@ export function ResultView({ state, viewerId, onPlayAgain, playAgainLabel = "Jug
       <section className="overflow-hidden rounded-card border border-white/5 bg-surface text-left">
         <h2 className="border-b border-white/5 px-6 py-4 font-display text-lg font-bold">Tabla de posiciones</h2>
         <ol>
-          {standings.map((player) => {
-            // Ranking de competencia: con el mismo puntaje se comparte el puesto (1, 1).
-            const rank = standings.findIndex((p) => scoreOf(p.id).money === scoreOf(player.id).money) + 1;
-            return (
-              <li key={player.id} className="flex items-center gap-4 border-b border-white/5 px-6 py-4 last:border-0">
-                <span className={cn("grid size-8 place-items-center rounded-full text-sm font-bold", rank === 1 && winner ? "bg-gold text-slate-900" : "bg-white/10")}>
-                  {rank}
+          {standings.map(({ player, money, coins, rank }) => (
+            <li key={player.id} className="flex items-center gap-4 border-b border-white/5 px-6 py-4 last:border-0">
+              <span className={cn("grid size-8 place-items-center rounded-full text-sm font-bold", rank === 1 && winner ? "bg-gold text-slate-900" : "bg-white/10")}>
+                {rank}
+              </span>
+              <Avatar avatarId={player.avatarId} size="sm" />
+              <span className="flex-1 font-semibold">
+                {player.nickname}
+                {player.id === viewerId && <span className="ml-2 text-xs text-muted">(tú)</span>}
+              </span>
+              <span className="text-right">
+                <span className="block font-display font-bold">{formatMoney(money)}</span>
+                <span className="text-xs text-muted">
+                  {coins} {coins === 1 ? "moneda" : "monedas"}
                 </span>
-                <Avatar avatarId={player.avatarId} size="sm" />
-                <span className="flex-1 font-semibold">
-                  {player.nickname}
-                  {player.id === viewerId && <span className="ml-2 text-xs text-muted">(tú)</span>}
-                </span>
-                <span className="text-right">
-                  <span className="block font-display font-bold">{formatMoney(scoreOf(player.id).money)}</span>
-                  <span className="text-xs text-muted">
-                    {scoreOf(player.id).coins} {scoreOf(player.id).coins === 1 ? "moneda" : "monedas"}
-                  </span>
-                </span>
-              </li>
-            );
-          })}
+              </span>
+            </li>
+          ))}
         </ol>
       </section>
     </div>

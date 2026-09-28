@@ -1,6 +1,6 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { Keyboard } from "lucide-react";
 import { getCurrentPlayer, getScores, type EdgeKey, type EdgeRef, type GameState, type PlayerId } from "../engine";
 import { useGameSounds } from "../hooks/useGameSounds";
@@ -55,6 +55,25 @@ export function GameTable({
   const current = getCurrentPlayer(state);
   const isMyTurn = sharedDevice || (viewerId !== null && current?.id === viewerId);
 
+  // Gestión del foco: llevarlo siempre al SIGUIENTE paso, sin robarlo si el usuario está en otra parte.
+  //   - Al lanzar, el botón LANZAR desaparece y el foco caería en <body>: lo movemos al tablero.
+  //   - Al empezar mi turno con el foco en el tablero: lo movemos a LANZAR.
+  const rootRef = useRef<HTMLDivElement>(null);
+  const boardRef = useRef<HTMLDivElement>(null);
+  const phase = state.turn?.phase;
+  const turnNumber = state.turn?.number;
+  useEffect(() => {
+    if (!isMyTurn) return;
+    const active = document.activeElement;
+    const lost = active === document.body || active === null;
+    const inBoard = boardRef.current?.contains(active) ?? false;
+    if (phase === "place" && lost) {
+      boardRef.current?.querySelector<HTMLButtonElement>('button[tabindex="0"]')?.focus();
+    } else if (phase === "roll" && inBoard) {
+      rootRef.current?.querySelector<HTMLButtonElement>('[aria-label="Dado"] button:not([disabled])')?.focus();
+    }
+  }, [phase, isMyTurn, turnNumber]);
+
   // "¿Qué acaba de pasar?": resaltamos lo que jugó el OTRO (lo propio ya lo vi al hacerlo).
   // En modo local (viewerId null) se resalta el turno anterior: ayuda al pasar el dispositivo.
   const recentKeys = new Set<EdgeKey>([
@@ -85,14 +104,15 @@ export function GameTable({
   // En móvil los <aside> usan `display: contents`: sus hijos pasan a ser celdas del grid
   // y `order` los reacomoda (tablero → dado → jugadores). En escritorio vuelven a ser columnas.
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[20rem_1fr_20rem] lg:items-center lg:gap-8 lg:py-10">
+    <div ref={rootRef} className="mx-auto grid w-full max-w-7xl gap-4 px-4 py-6 lg:grid-cols-[20rem_1fr_20rem] lg:items-center lg:gap-8 lg:py-10">
       {/* Estructura semántica: cada vista tiene un h1, aunque visualmente no haga falta. */}
       <h1 className="sr-only">{title}</h1>
       {/* Región viva: el lector de pantalla lee cada cambio de este texto (turnos, capturas). */}
       <p role="status" aria-live="polite" className="sr-only">
         {announcement}
       </p>
-      <aside className="contents lg:order-1 lg:block lg:space-y-4">
+      {/* Regiones con nombre único: el lector de pantalla puede saltar entre ellas (landmarks). */}
+      <aside aria-label={`Panel de ${left.nickname}`} className="contents lg:order-1 lg:block lg:space-y-4">
         <div className="order-3">{card(left)}</div>
         {state.turn && (
           <div className="order-2">
@@ -112,7 +132,7 @@ export function GameTable({
         {actions && <div className="order-6">{actions}</div>}
       </aside>
 
-      <div className="order-1 flex flex-col items-center gap-4 lg:order-2">
+      <div ref={boardRef} className="order-1 flex flex-col items-center gap-4 lg:order-2">
         <Board
           state={state}
           seatOf={seatOf}
@@ -132,7 +152,7 @@ export function GameTable({
         {showTimer && state.turn && <TurnTimer deadline={state.turn.deadline} />}
       </div>
 
-      <aside className="contents lg:order-3 lg:block lg:space-y-4">
+      <aside aria-label={`Panel de ${right?.nickname ?? "rival"} e historial`} className="contents lg:order-3 lg:block lg:space-y-4">
         <div className="order-4">{card(right)}</div>
         <div className="order-5">
           <GameLog state={state} seatOf={seatOf} />
