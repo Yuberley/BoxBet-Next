@@ -54,7 +54,7 @@ RoomClient ── Server Action ──▶  actions.ts ─▶ motor puro ─▶ r
 | UI optimista (`useOptimistic`) | `RoomClient.tsx` |
 | Estado externo a React (`useSyncExternalStore`) | `hooks/useNow.ts`, `components/sound/sound-preference.ts` |
 | Design tokens (una fuente de verdad visual) | `app/globals.css` (`@theme`) |
-| Accesibilidad: foco, `aria-live`, áreas de toque grandes | `Board.tsx`, `DicePanel.tsx`, `CodeInput.tsx` |
+| Accesibilidad y UX (contraste, teclado, foco, lectores de pantalla) | 📘 [`docs/UX-ACCESIBILIDAD.md`](docs/UX-ACCESIBILIDAD.md) |
 
 ## Estructura
 
