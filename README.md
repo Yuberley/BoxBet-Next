@@ -2,6 +2,27 @@
 
 Juego de "cerrar cajas" por turnos para 2 jugadores: lanzas un dado, trazas líneas y, si cierras una celda, ganas su moneda.
 Proyecto de clase: **el objetivo es entender los conceptos**, no memorizar la sintaxis de un framework.
+¿Empiezas con React y Next? Sigue el recorrido guiado: 📘 [`docs/HOJA-DE-RUTA.md`](docs/HOJA-DE-RUTA.md).
+
+## Instalar en otro computador
+
+Requisitos: **Node.js 20.9 o superior** (recomendado 24, ver `.nvmrc`) y Git.
+
+```bash
+git clone https://github.com/Yuberley/BoxBet-Next.git
+cd BoxBet-Next
+npm ci                       # instala exactamente las versiones de package-lock.json
+```
+
+Luego copia tu archivo **`.env.local`** en la raíz del proyecto (no está en GitHub: tiene la clave secreta).
+Sin ese archivo, `/local` y `/reglas` funcionan igual; solo el modo en línea lo necesita.
+
+```bash
+npm run dev                  # http://localhost:3000
+```
+
+**Jugar desde el celular** (misma red Wi-Fi): agrega a `.env.local` la línea `DEV_ORIGINS=<IP-del-PC>`
+(la ves con `ipconfig`), ejecuta `npm run dev -- -H 0.0.0.0` y abre `http://<IP-del-PC>:3000` en el celular.
 
 ## Arrancar
 
